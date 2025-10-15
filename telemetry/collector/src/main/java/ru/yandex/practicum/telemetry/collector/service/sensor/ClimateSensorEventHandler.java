@@ -31,7 +31,7 @@ public class ClimateSensorEventHandler extends SensorEventHandler {
         ClimateSensorEvent climateEvent = (ClimateSensorEvent) event;
 
         ClimateSensorAvro data = ClimateSensorAvro.newBuilder()
-                .setTemperatureC(climateEvent.getTemperature())
+                .setTemperatureC(climateEvent.getTemperatureC())
                 .setCo2Level(climateEvent.getCo2Level())
                 .setHumidity(climateEvent.getHumidity())
                 .build();
