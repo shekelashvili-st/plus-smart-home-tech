@@ -2,4 +2,4 @@ collector:
   kafka:
     topic:
       hubs: "telemetry.hubs.v1"
-      sensors: "telemetry.hubs.v1"
+      sensors: "telemetry.sensors.v1"
