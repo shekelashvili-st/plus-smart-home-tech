@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.yandex.practicum.kafka.serializer.GenericAvroSerializer;
 
+import java.time.Duration;
 import java.util.Properties;
 
 @Configuration
@@ -33,7 +34,7 @@ public class KafkaConfig {
             @Override
             public void stop() {
                 producer.flush();
-                producer.close();
+                producer.close(Duration.ofSeconds(10));
             }
 
             private void initProducer() {
