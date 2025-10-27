@@ -9,9 +9,17 @@ public class ScenarioConditionMapper {
     public static ScenarioConditionAvro protoToAvro(ScenarioConditionProto condition) {
         return ScenarioConditionAvro.newBuilder()
                 .setType(ConditionTypeAvro.valueOf(condition.getType().toString()))
-                .setValue(condition.getOperationValue())
+                .setValue(getOneOfValue(condition))
                 .setSensorId(condition.getSensorId())
                 .setOperation(ConditionOperationAvro.valueOf(condition.getOperation().toString()))
                 .build();
+    }
+
+    private static Object getOneOfValue(ScenarioConditionProto condition) {
+        return switch (condition.getValueCase()) {
+            case INT_VALUE -> condition.getIntValue();
+            case BOOL_VALUE -> condition.getBoolValue();
+            case VALUE_NOT_SET -> null;
+        };
     }
 }
