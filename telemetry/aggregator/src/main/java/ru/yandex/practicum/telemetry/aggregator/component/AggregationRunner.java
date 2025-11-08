@@ -1,64 +1,52 @@
 package ru.yandex.practicum.telemetry.aggregator.component;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.specific.SpecificRecordBase;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.errors.WakeupException;
-import org.apache.kafka.common.serialization.VoidDeserializer;
-import org.apache.kafka.common.serialization.VoidSerializer;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.kafka.serializer.GenericAvroSerializer;
-import ru.yandex.practicum.kafka.serializer.SensorEventDeserializer;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
+import ru.yandex.practicum.telemetry.aggregator.config.KafkaConfig;
 
-import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 
 @Slf4j
 @Component
-public class AggregationStarter {
+@RequiredArgsConstructor
+public class AggregationRunner implements CommandLineRunner {
 
-    private static final Duration CONSUME_ATTEMPT_TIMEOUT = Duration.ofMillis(1000);
+    private final KafkaConfig config;
     private final Map<String, SensorsSnapshotAvro> snapshots = new HashMap<>();
-    private final String topicIn;
-    private final String topicOut;
-    private final String server;
     private Producer<Void, SpecificRecordBase> producer;
     private KafkaConsumer<Void, SpecificRecordBase> consumer;
 
-    @Autowired
-    public AggregationStarter(@Value("${collector.kafka.topic.sensors}") String topicIn,
-                              @Value("${collector.kafka.topic.snapshots}") String topicOut,
-                              @Value("${collector.kafka.server}") String server) {
-        this.topicIn = topicIn;
-        this.topicOut = topicOut;
-        this.server = server;
-    }
-
-    public void start() {
+    @Override
+    public void run(String... args) throws Exception {
         initConsumer();
         initProducer();
         Runtime.getRuntime().addShutdownHook(new Thread(consumer::wakeup));
         try {
-            consumer.subscribe(List.of(topicIn));
+            consumer.subscribe(List.of(config.getConsumer().getTopic()));
             while (true) {
-                ConsumerRecords<Void, SpecificRecordBase> records = consumer.poll(CONSUME_ATTEMPT_TIMEOUT);
+                ConsumerRecords<Void, SpecificRecordBase> records = consumer.poll(config.getConsumer().getPollTimeout());
                 for (ConsumerRecord<Void, SpecificRecordBase> record : records) {
                     // обрабатываем очередную запись
-                    updateState(record).ifPresent(value -> producer.send(new ProducerRecord<>(topicOut, value)));
+                    updateState(record).ifPresent(value ->
+                            producer.send(new ProducerRecord<>(config.getProducer().getTopic(), value)));
                 }
                 consumer.commitSync();
             }
@@ -69,9 +57,9 @@ public class AggregationStarter {
         } finally {
             try {
                 producer.flush();
-                producer.close(Duration.ofSeconds(10));
+                producer.close(config.getCloseTimeout());
                 consumer.commitSync();
-                consumer.close(Duration.ofSeconds(10));
+                consumer.close(config.getCloseTimeout());
             } finally {
                 log.info("Закрываем консьюмер");
                 consumer.close();
@@ -82,23 +70,11 @@ public class AggregationStarter {
     }
 
     private void initProducer() {
-        Properties config = new Properties();
-        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, server);
-        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, VoidSerializer.class);
-        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, GenericAvroSerializer.class);
-
-        producer = new KafkaProducer<>(config);
+        producer = new KafkaProducer<>(config.getProducer().getProperties());
     }
 
     private void initConsumer() {
-        Properties config = new Properties();
-        config.put(ConsumerConfig.CLIENT_ID_CONFIG, "aggregatorConsumer");
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "aggregator.group");
-        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, server);
-        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, VoidDeserializer.class.getCanonicalName());
-        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, SensorEventDeserializer.class.getCanonicalName());
-
-        consumer = new KafkaConsumer<>(config);
+        consumer = new KafkaConsumer<>(config.getConsumer().getProperties());
     }
 
     private Optional<SensorsSnapshotAvro> updateState(ConsumerRecord<Void, SpecificRecordBase> record) {
