@@ -1,12 +1,14 @@
 package ru.yandex.practicum.telemetry.analyzer.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class AnalyzerRunner implements CommandLineRunner {
     final HubEventProcessor hubEventProcessor;
-    final SnapshotEventProcessor snapshotEventProcessor;
+    final SnapshotProcessor snapshotProcessor;
 
     @Override
     public void run(String... args) throws Exception {
@@ -14,6 +16,6 @@ public class AnalyzerRunner implements CommandLineRunner {
         hubEventsThread.setName("HubEventProcessorThread");
         hubEventsThread.start();
 
-        snapshotEventProcessor.start();
+        snapshotProcessor.run();
     }
 }

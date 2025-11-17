@@ -5,7 +5,9 @@ import lombok.*;
 
 @Getter
 @Setter
-@RequiredArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 @ToString
 @EqualsAndHashCode(of = "id")
 @Entity

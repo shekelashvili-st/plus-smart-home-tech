@@ -3,6 +3,7 @@ package ru.yandex.practicum.telemetry.aggregator.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.specific.SpecificRecordBase;
+import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -32,7 +33,7 @@ public class AggregatorRunner implements CommandLineRunner {
     private final KafkaConfig config;
     private final Map<String, SensorsSnapshotAvro> snapshots = new HashMap<>();
     private Producer<Void, SpecificRecordBase> producer;
-    private KafkaConsumer<Void, SpecificRecordBase> consumer;
+    private Consumer<Void, SpecificRecordBase> consumer;
 
     @Override
     public void run(String... args) throws Exception {
