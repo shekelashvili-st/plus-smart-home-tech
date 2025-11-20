@@ -3,13 +3,11 @@ package ru.yandex.practicum.telemetry.aggregator.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.specific.SpecificRecordBase;
-import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -34,6 +32,7 @@ public class AggregatorRunner implements CommandLineRunner {
     private final Map<String, SensorsSnapshotAvro> snapshots = new HashMap<>();
     private Producer<Void, SpecificRecordBase> producer;
     private Consumer<Void, SpecificRecordBase> consumer;
+    private static final Map<TopicPartition, OffsetAndMetadata> currentOffsets = new HashMap<>();
 
     @Override
     public void run(String... args) throws Exception {
@@ -48,8 +47,17 @@ public class AggregatorRunner implements CommandLineRunner {
                     // обрабатываем очередную запись
                     updateState(record).ifPresent(value ->
                             producer.send(new ProducerRecord<>(config.getProducer().getTopic(), value)));
+                    // записываем оффсеты, чтобы минимизировать повторные обработки
+                    currentOffsets.put(
+                            new TopicPartition(record.topic(), record.partition()),
+                            new OffsetAndMetadata(record.offset() + 1)
+                    );
                 }
-                consumer.commitSync();
+                consumer.commitAsync((offsets, exception) -> {
+                    if (exception != null) {
+                        log.warn("Во время фиксации смещений при агрегации произошла ошибка. Cмещения: {}", offsets, exception);
+                    }
+                });
             }
         } catch (WakeupException ignored) {
             // Do nothing
@@ -59,7 +67,7 @@ public class AggregatorRunner implements CommandLineRunner {
             try {
                 producer.flush();
                 producer.close(config.getCloseTimeout());
-                consumer.commitSync();
+                consumer.commitSync(currentOffsets);
                 consumer.close(config.getCloseTimeout());
             } finally {
                 log.info("Закрываем консьюмер");
