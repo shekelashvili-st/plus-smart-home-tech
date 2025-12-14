@@ -8,6 +8,9 @@ spring:
     password: "telemetry"
   sql.init.mode: always
 
+server:
+  port: 0
+
 grpc:
   client:
     hub-router:

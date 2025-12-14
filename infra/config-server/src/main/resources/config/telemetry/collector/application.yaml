@@ -5,6 +5,9 @@ spring:
   main:
     web-application-type: none
 
+server:
+  port: 0
+
 collector:
   kafka:
     close-timeout: 5000ms
