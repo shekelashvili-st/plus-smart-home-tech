@@ -4,8 +4,8 @@ spring:
   datasource:
     driverClassName: "org.postgresql.Driver"
     url: "jdbc:postgresql://localhost:5432/telemetry"
-    username: "telemetry"
-    password: "telemetry"
+    username: "postgres"
+    password: "postgrespass"
   sql.init.mode: always
 
 server:
