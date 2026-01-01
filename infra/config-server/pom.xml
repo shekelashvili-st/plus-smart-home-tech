@@ -25,7 +25,7 @@
     </dependencies>
 
     <build>
-        <finalName>config-server</finalName>
+        <finalName>config-server-run</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

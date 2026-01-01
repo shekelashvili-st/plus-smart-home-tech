@@ -20,7 +20,7 @@
     </dependencies>
 
     <build>
-        <finalName>discovery-server</finalName>
+        <finalName>discovery-server-run</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

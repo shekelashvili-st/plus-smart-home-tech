@@ -64,7 +64,7 @@
     </dependencies>
 
     <build>
-        <finalName>warehouse</finalName>
+        <finalName>warehouse-run</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

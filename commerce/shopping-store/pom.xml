@@ -65,7 +65,7 @@
     </dependencies>
 
     <build>
-        <finalName>shopping-store</finalName>
+        <finalName>shopping-store-run</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
