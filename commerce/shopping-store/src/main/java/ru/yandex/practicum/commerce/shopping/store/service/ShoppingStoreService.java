@@ -1,7 +1,7 @@
 package ru.yandex.practicum.commerce.shopping.store.service;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedModel;
+import ru.yandex.practicum.commerce.dto.product.PageWithSort;
 import ru.yandex.practicum.commerce.dto.product.ProductCategory;
 import ru.yandex.practicum.commerce.dto.product.ProductDto;
 import ru.yandex.practicum.commerce.dto.product.SetProductQuantityStateRequest;
@@ -9,7 +9,7 @@ import ru.yandex.practicum.commerce.dto.product.SetProductQuantityStateRequest;
 import java.util.UUID;
 
 public interface ShoppingStoreService {
-    PagedModel<ProductDto> getProducts(ProductCategory category, Pageable pageable);
+    PageWithSort<ProductDto> getProducts(ProductCategory category, Pageable pageable);
 
     ProductDto putProduct(ProductDto productDto);
 

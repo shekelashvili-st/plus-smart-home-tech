@@ -4,13 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.yandex.practicum.commerce.dto.product.ProductCategory;
-import ru.yandex.practicum.commerce.dto.product.ProductDto;
-import ru.yandex.practicum.commerce.dto.product.ProductState;
-import ru.yandex.practicum.commerce.dto.product.SetProductQuantityStateRequest;
+import ru.yandex.practicum.commerce.dto.product.*;
 import ru.yandex.practicum.commerce.exception.ProductNotFoundException;
 import ru.yandex.practicum.commerce.shopping.store.mapper.ShoppingStoreProductMapper;
 import ru.yandex.practicum.commerce.shopping.store.model.ShoppingStoreProduct;
@@ -27,14 +23,14 @@ public class ShoppingStoreServiceImpl implements ShoppingStoreService {
     private final ShoppingStoreProductMapper mapper;
 
     @Override
-    public PagedModel<ProductDto> getProducts(ProductCategory category, Pageable pageable) {
+    public PageWithSort<ProductDto> getProducts(ProductCategory category, Pageable pageable) {
         Specification<ShoppingStoreProduct> spec = Specification.where(null);
         if (category != null) {
             spec = spec.and(ShoppingStoreProductSpecs.categoryIs(category));
         }
 
         Page<ShoppingStoreProduct> productsPage = shoppingStoreProductRepository.findAll(spec, pageable);
-        return new PagedModel<>(productsPage.map(mapper::dtoFromModel));
+        return new PageWithSort<>(productsPage.map(mapper::dtoFromModel), pageable.getSort());
     }
 
     @Override

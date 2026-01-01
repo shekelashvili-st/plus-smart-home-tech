@@ -6,15 +6,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PagedModel;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.commerce.contract.shopping.store.ShoppingStoreOperations;
-import ru.yandex.practicum.commerce.dto.product.ProductCategory;
-import ru.yandex.practicum.commerce.dto.product.ProductDto;
-import ru.yandex.practicum.commerce.dto.product.QuantityState;
-import ru.yandex.practicum.commerce.dto.product.SetProductQuantityStateRequest;
+import ru.yandex.practicum.commerce.dto.product.*;
 import ru.yandex.practicum.commerce.shopping.store.service.ShoppingStoreService;
 
 import java.util.List;
@@ -28,7 +24,7 @@ public class ShoppingStoreController implements ShoppingStoreOperations {
     private final ShoppingStoreService shoppingStoreService;
 
     @Override
-    public PagedModel<ProductDto> getProducts(ProductCategory category, Integer page, Integer size, List<String> sort) {
+    public PageWithSort<ProductDto> getProducts(ProductCategory category, Integer page, Integer size, List<String> sort) {
         Pageable pageParams = Pageable.unpaged();
         if (page != null && size != null) {
             pageParams = sort == null ? PageRequest.of(page, size)
