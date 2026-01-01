@@ -11,6 +11,12 @@ spring:
             - classpath:config/telemetry/{application}
             - classpath:config/commerce/{application}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics, mappings
+
 eureka:
   client:
     serviceUrl:

@@ -6,5 +6,11 @@ spring:
     password: "postgrespass"
   sql.init.mode: always
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics, mappings
+
 server:
   port: 0
