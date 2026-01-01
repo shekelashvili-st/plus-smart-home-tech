@@ -6,19 +6,18 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.validator.constraints.UUID;
 
 import java.util.Map;
+import java.util.UUID;
 
 @Getter
 @Setter
 @Builder
-@EqualsAndHashCode(of = "shoppingCardId")
+@EqualsAndHashCode(of = "shoppingCartId")
 public class ShoppingCartDto {
     @NotNull
-    @UUID
-    private String shoppingCardId;
+    private UUID shoppingCartId;
 
     @NotNull
-    private Map<@NotNull @UUID String, @NotNull @Positive Integer> products;
+    private Map<@NotNull UUID, @NotNull @Positive Integer> products;
 }

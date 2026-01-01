@@ -24,6 +24,7 @@ public class ShoppingStoreProduct {
     @Column(name = "product_name")
     private String productName;
 
+    @Column
     private String description;
 
     @Column(name = "image_src")
@@ -41,5 +42,6 @@ public class ShoppingStoreProduct {
     @Column(name = "product_category")
     private ProductCategory productCategory;
 
+    @Column
     private BigDecimal price;
 }
