@@ -3,6 +3,7 @@ package ru.yandex.practicum.commerce.order.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.practicum.commerce.contract.warehouse.WarehouseClient;
 import ru.yandex.practicum.commerce.dto.cart.ShoppingCartDto;
 import ru.yandex.practicum.commerce.dto.order.CreateNewOrderRequest;
 import ru.yandex.practicum.commerce.dto.order.OrderDto;
@@ -23,6 +24,7 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
+    private final WarehouseClient warehouseClient;
     private final OrderMapper mapper;
     private final AddressMapper addressMapper;
 
@@ -36,6 +38,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderDto putOrder(String username,
                              CreateNewOrderRequest newOrderRequest) {
         ShoppingCartDto cart = newOrderRequest.getShoppingCart();
+        warehouseClient.checkShoppingCart(cart);
         OrderModel newOrder = OrderModel.builder()
                 .address(addressMapper.dtoToModel(newOrderRequest.getDeliveryAddress()))
                 .shoppingCartId(cart.getShoppingCartId())
@@ -43,7 +46,6 @@ public class OrderServiceImpl implements OrderService {
                 .username(username)
                 .state(OrderState.NEW)
                 .build();
-        // Need to check warehouse before saving
         return mapper.modelToDto(orderRepository.save(newOrder));
     }
 
@@ -56,8 +58,8 @@ public class OrderServiceImpl implements OrderService {
         if (order.getProducts() != productReturnRequest.getProducts()) {
             throw new RuntimeException("Partial returns not supported");
         }
+        warehouseClient.returnProducts(order.getProducts());
         order.setState(OrderState.PRODUCT_RETURNED);
-        // Should update warehouse
         return mapper.modelToDto(orderRepository.save(order));
     }
 
