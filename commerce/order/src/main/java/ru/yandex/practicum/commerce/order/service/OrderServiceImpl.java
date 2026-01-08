@@ -3,12 +3,15 @@ package ru.yandex.practicum.commerce.order.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.practicum.commerce.contract.payment.PaymentClient;
 import ru.yandex.practicum.commerce.contract.warehouse.WarehouseClient;
 import ru.yandex.practicum.commerce.dto.cart.ShoppingCartDto;
 import ru.yandex.practicum.commerce.dto.order.CreateNewOrderRequest;
 import ru.yandex.practicum.commerce.dto.order.OrderDto;
 import ru.yandex.practicum.commerce.dto.order.OrderState;
 import ru.yandex.practicum.commerce.dto.order.ProductReturnRequest;
+import ru.yandex.practicum.commerce.dto.warehouse.AssemblyProductsForOrderRequest;
+import ru.yandex.practicum.commerce.dto.warehouse.BookedProductsDto;
 import ru.yandex.practicum.commerce.exception.NoOrderFoundException;
 import ru.yandex.practicum.commerce.order.mapper.AddressMapper;
 import ru.yandex.practicum.commerce.order.mapper.OrderMapper;
@@ -25,6 +28,7 @@ import java.util.UUID;
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final WarehouseClient warehouseClient;
+    private final PaymentClient paymentClient;
     private final OrderMapper mapper;
     private final AddressMapper addressMapper;
 
@@ -113,8 +117,10 @@ public class OrderServiceImpl implements OrderService {
     public OrderDto calculateTotalForOrder(UUID orderId) {
         OrderModel order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NoOrderFoundException("Order with id %s not found".formatted(orderId)));
-        //Need to call another service for calc
-        order.setTotalPrice(BigDecimal.valueOf(0));
+        order.setProductPrice(paymentClient.calculateProductCost(mapper.modelToDto(order)));
+        BigDecimal price = paymentClient.calculateTotalCost(mapper.modelToDto(order));
+        order.setTotalPrice(price);
+        order.setPaymentId(paymentClient.createPayment(mapper.modelToDto(order)).getPaymentId());
         return mapper.modelToDto(orderRepository.save(order));
     }
 
@@ -133,7 +139,12 @@ public class OrderServiceImpl implements OrderService {
     public OrderDto assembleOrder(UUID orderId) {
         OrderModel order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NoOrderFoundException("Order with id %s not found".formatted(orderId)));
-        //Need to change the numbers in warehouse
+        AssemblyProductsForOrderRequest request = new AssemblyProductsForOrderRequest(order.getProducts(), orderId);
+        BookedProductsDto bookedProducts = warehouseClient.assembleProducts(request);
+
+        order.setDeliveryWeight(bookedProducts.getDeliveryWeight());
+        order.setDeliveryVolume(bookedProducts.getDeliveryVolume());
+        order.setFragile(bookedProducts.getFragile());
         order.setState(OrderState.ASSEMBLED);
         return mapper.modelToDto(orderRepository.save(order));
     }
@@ -143,7 +154,6 @@ public class OrderServiceImpl implements OrderService {
     public OrderDto assemblyFailedOrder(UUID orderId) {
         OrderModel order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NoOrderFoundException("Order with id %s not found".formatted(orderId)));
-        //Need to change the numbers in warehouse
         order.setState(OrderState.ASSEMBLY_FAILED);
         return mapper.modelToDto(orderRepository.save(order));
     }
