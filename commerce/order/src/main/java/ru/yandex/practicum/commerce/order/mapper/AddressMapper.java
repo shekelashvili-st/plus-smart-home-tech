@@ -7,4 +7,6 @@ import ru.yandex.practicum.commerce.order.model.AddressModel;
 @Mapper(componentModel = "spring")
 public interface AddressMapper {
     AddressModel dtoToModel(AddressDto dto);
+
+    AddressDto modelToDto(AddressModel model);
 }

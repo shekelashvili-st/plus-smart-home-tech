@@ -3,6 +3,7 @@ package ru.yandex.practicum.commerce.order.controller;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,6 +21,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping(path = "/api/v1/order")
 @RequiredArgsConstructor
+@Validated
 public class OrderController implements OrderOperations {
     private final OrderService orderService;
 
@@ -30,13 +32,13 @@ public class OrderController implements OrderOperations {
 
     @Override
     public OrderDto putOrder(@RequestParam String username,
-                             @RequestBody @Valid CreateNewOrderRequest newOrderRequest) {
+                             @RequestBody @NotNull @Valid CreateNewOrderRequest newOrderRequest) {
         checkUsername(username);
         return orderService.putOrder(username, newOrderRequest);
     }
 
     @Override
-    public OrderDto returnOrder(@RequestBody @Valid ProductReturnRequest productReturnRequest) {
+    public OrderDto returnOrder(@RequestBody @NotNull @Valid ProductReturnRequest productReturnRequest) {
         return orderService.returnOrder(productReturnRequest);
     }
 
