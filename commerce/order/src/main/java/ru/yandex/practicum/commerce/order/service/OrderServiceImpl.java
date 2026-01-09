@@ -3,9 +3,11 @@ package ru.yandex.practicum.commerce.order.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.practicum.commerce.contract.delivery.DeliveryClient;
 import ru.yandex.practicum.commerce.contract.payment.PaymentClient;
 import ru.yandex.practicum.commerce.contract.warehouse.WarehouseClient;
 import ru.yandex.practicum.commerce.dto.cart.ShoppingCartDto;
+import ru.yandex.practicum.commerce.dto.delivery.DeliveryDto;
 import ru.yandex.practicum.commerce.dto.order.CreateNewOrderRequest;
 import ru.yandex.practicum.commerce.dto.order.OrderDto;
 import ru.yandex.practicum.commerce.dto.order.OrderState;
@@ -28,6 +30,7 @@ import java.util.UUID;
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final WarehouseClient warehouseClient;
+    private final DeliveryClient deliveryClient;
     private final PaymentClient paymentClient;
     private final OrderMapper mapper;
     private final AddressMapper addressMapper;
@@ -129,8 +132,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderDto calculateDeliveryForOrder(UUID orderId) {
         OrderModel order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NoOrderFoundException("Order with id %s not found".formatted(orderId)));
-        //Need to call another service for calc
-        order.setDeliveryPrice(BigDecimal.valueOf(0));
+        order.setDeliveryPrice(deliveryClient.calculateDeliveryCost(mapper.modelToDto(order)));
         return mapper.modelToDto(orderRepository.save(order));
     }
 
@@ -145,6 +147,11 @@ public class OrderServiceImpl implements OrderService {
         order.setDeliveryWeight(bookedProducts.getDeliveryWeight());
         order.setDeliveryVolume(bookedProducts.getDeliveryVolume());
         order.setFragile(bookedProducts.getFragile());
+        deliveryClient.createDelivery(DeliveryDto.builder()
+                .toAddress(addressMapper.modelToDto((order.getAddress())))
+                .fromAddress(warehouseClient.getAddress())
+                .orderId(orderId)
+                .build());
         order.setState(OrderState.ASSEMBLED);
         return mapper.modelToDto(orderRepository.save(order));
     }

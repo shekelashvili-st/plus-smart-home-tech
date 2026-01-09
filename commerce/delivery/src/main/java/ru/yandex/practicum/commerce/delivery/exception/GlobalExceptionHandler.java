@@ -1,4 +1,4 @@
-package ru.yandex.practicum.commerce.payment.exception;
+package ru.yandex.practicum.commerce.delivery.exception;
 
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.ValidationException;
@@ -8,8 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.yandex.practicum.commerce.exception.NoOrderFoundException;
-import ru.yandex.practicum.commerce.exception.NotEnoughInfoInOrderToCalculateException;
+import ru.yandex.practicum.commerce.exception.NoDeliveryFoundException;
 
 @Slf4j
 @RestControllerAdvice
@@ -17,16 +16,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Exception handleNoOrderFound(final NoOrderFoundException e) {
-        String reason = "No order found";
-        log.error(reason + ". " + e.getMessage());
-        return e;
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Exception handleNotEnoughInfoToCalculate(final NotEnoughInfoInOrderToCalculateException e) {
-        String reason = "Not enough info to calculate";
+    public Exception handleNoDeliveryFound(final NoDeliveryFoundException e) {
+        String reason = "No delivery found";
         log.error(reason + ". " + e.getMessage());
         return e;
     }
