@@ -7,6 +7,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.commerce.contract.delivery.DeliveryOperations;
+import ru.yandex.practicum.commerce.delivery.service.DeliveryService;
 import ru.yandex.practicum.commerce.dto.delivery.DeliveryDto;
 import ru.yandex.practicum.commerce.dto.order.OrderDto;
 
@@ -18,29 +19,30 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Validated
 public class DeliveryController implements DeliveryOperations {
+    private final DeliveryService deliveryService;
 
     @Override
     public DeliveryDto createDelivery(@Valid @NotNull DeliveryDto delivery) {
-        return null;
+        return deliveryService.createDelivery(delivery);
     }
 
     @Override
     public void successfulDelivery(@NotNull UUID orderId) {
-
+        deliveryService.successfulDelivery(orderId);
     }
 
     @Override
     public void failedDelivery(@NotNull UUID orderId) {
-
+        deliveryService.failedDelivery(orderId);
     }
 
     @Override
     public void pickedDelivery(@NotNull UUID orderId) {
-
+        deliveryService.pickedDelivery(orderId);
     }
 
     @Override
     public BigDecimal calculateDeliveryCost(@Valid @NotNull OrderDto order) {
-        return null;
+        return deliveryService.calculateDeliveryCost(order);
     }
 }
