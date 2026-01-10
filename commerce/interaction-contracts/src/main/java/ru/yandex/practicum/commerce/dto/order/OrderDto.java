@@ -2,10 +2,7 @@ package ru.yandex.practicum.commerce.dto.order;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -15,6 +12,7 @@ import java.util.UUID;
 @Setter
 @Builder
 @EqualsAndHashCode(of = "orderId")
+@ToString
 public class OrderDto {
 
     @NotNull

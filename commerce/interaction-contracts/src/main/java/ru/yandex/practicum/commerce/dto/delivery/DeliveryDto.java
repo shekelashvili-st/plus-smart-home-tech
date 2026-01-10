@@ -2,10 +2,7 @@ package ru.yandex.practicum.commerce.dto.delivery;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import ru.yandex.practicum.commerce.dto.warehouse.AddressDto;
 
 import java.util.UUID;
@@ -14,6 +11,7 @@ import java.util.UUID;
 @Setter
 @Builder
 @EqualsAndHashCode(of = "deliveryId")
+@ToString
 public class DeliveryDto {
 
     private UUID deliveryId;
